@@ -1,11 +1,11 @@
 #
 # Scala and sbt Dockerfile
 #
-# https://github.com/hseeberger/scala-sbt
+# https://github.com/AlexisChevalier/unprivileged-scala-sbt
 #
 
 # Pull base image
-FROM openjdk:8u172
+FROM openjdk:8u171
 
 # Env variables
 ENV SCALA_VERSION 2.12.6
@@ -27,8 +27,15 @@ RUN \
   dpkg -i sbt-$SBT_VERSION.deb && \
   rm sbt-$SBT_VERSION.deb && \
   apt-get update && \
-  apt-get install sbt && \
-  sbt sbtVersion
+  apt-get install -y sbt sudo
+
+#Create user
+RUN useradd -ms /bin/bash sbtuser
+RUN adduser sbtuser sudo
+RUN echo 'sbtuser ALL=NOPASSWD: ALL' >> /etc/sudoers.d/50-sbtuser
+USER sbtuser
 
 # Define working directory
-WORKDIR /root
+WORKDIR /home/sbtuser
+
+RUN sbt sbtVersion
