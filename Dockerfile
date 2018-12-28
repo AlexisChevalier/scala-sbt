@@ -5,14 +5,11 @@
 #
 
 # Pull base image
-FROM openjdk:8u171
+FROM openjdk:11.0.1
 
 # Env variables
-ENV SCALA_VERSION 2.12.6
-ENV SBT_VERSION 1.1.6
-
-# Scala expects this file
-RUN touch /usr/lib/jvm/java-8-openjdk-amd64/release
+ENV SCALA_VERSION 2.12.8
+ENV SBT_VERSION 1.2.7
 
 # Install Scala
 ## Piping curl directly in tar
@@ -27,7 +24,14 @@ RUN \
   dpkg -i sbt-$SBT_VERSION.deb && \
   rm sbt-$SBT_VERSION.deb && \
   apt-get update && \
-  apt-get install -y sbt sudo
+  apt-get install -y sbt sudo && \
+  sbt sbtVersion && \
+  mkdir project && \
+  echo "scalaVersion := \"${SCALA_VERSION}\"" > build.sbt && \
+  echo "sbt.version=${SBT_VERSION}" > project/build.properties && \
+  echo "case object Temp" > Temp.scala && \
+  sbt compile && \
+  rm -r project && rm build.sbt && rm Temp.scala && rm -r target
 
 #Create user
 RUN useradd -ms /bin/bash sbtuser
